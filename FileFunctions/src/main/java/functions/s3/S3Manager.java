@@ -29,13 +29,9 @@ public class S3Manager {
     public final static String CF_THUMB_DIST_DOMAIN = "[Thumbnail CF Domain]].cloudfront.net";
     public final static String PHOTO_BUCKET = "signed-img-myid";
     public final static String VOD_BUCKET = "signed-video-myid";
-    public final static String KEY_PAIR_ID = "APKAI62VDI2QSRI3XQQA";
+    public final static String KEY_PAIR_ID = "[CloudFront key pair id]";
 
-    private final static String PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----\n" +
-        "MII...\n" +
-        "[Input CloudFront Private Key]\n" +
-        "...1Y\n" +
-        "-----END RSA PRIVATE KEY-----\n";
+    private final static String PRIVATE_KEY = "[CloudFront Private Key]";
 
     private static volatile S3Manager instance;
     private static AmazonS3 client;
