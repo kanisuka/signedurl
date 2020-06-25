@@ -1,0 +1,271 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  File handling SAM Template for AWS
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 30
+    Tracing: Active
+    AutoPublishAlias: live
+  Api:
+    TracingEnabled: true
+
+Resources:
+  UploadFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: FileUploadSignedFunction
+      CodeUri: FileFunctions
+      Handler: functions.handler.UploadApp::handleRequest
+      Runtime: java8
+      MemorySize: 512
+      Role:
+        Fn::GetAtt:
+          - LambdaExecutionRole
+          - Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PhotoTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref VODTable
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          PARAM1: VALUE
+      Events:
+        Upload:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /nfile/object
+            Method: get
+  ListFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: FileListSignedFunction
+      CodeUri: FileFunctions
+      Handler: functions.handler.ListApp::handleRequest
+      Runtime: java8
+      MemorySize: 512
+      Role:
+        Fn::GetAtt:
+          - LambdaExecutionRole
+          - Arn
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PhotoTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref VODTable
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          PARAM1: VALUE
+      Events:
+        Upload:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /nfile/object/list
+            Method: get
+  DownloadFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: FileDownloadSignedFunction
+      CodeUri: FileFunctions
+      Handler: functions.handler.DownloadApp::handleRequest
+      Runtime: java8
+      MemorySize: 512
+      Role:
+        Fn::GetAtt:
+          - LambdaExecutionRole
+          - Arn
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PhotoTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref VODTable
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          PARAM1: VALUE
+      Events:
+        Upload:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /nfile/object/{oid}
+            Method: get
+  ThumbFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: FileThumbnailSignedFunction
+      CodeUri: FileFunctions
+      Handler: functions.handler.ThumbApp::handleRequest
+      Runtime: java8
+      MemorySize: 512
+      Role:
+        Fn::GetAtt:
+          - LambdaExecutionRole
+          - Arn
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PhotoTable
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          PARAM1: VALUE
+      Events:
+        Upload:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /nfile/object/thumb/{oid}
+            Method: get
+  StreamingFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName: FileStreamingSignedFunction
+      CodeUri: FileFunctions
+      Handler: functions.handler.StreamingApp::handleRequest
+      Runtime: java8
+      MemorySize: 512
+      Role:
+        Fn::GetAtt:
+          - LambdaExecutionRole
+          - Arn
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref VODTable
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          PARAM1: VALUE
+      Events:
+        Upload:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /nfile/object/streaming/{oid}
+            Method: get
+  PhotoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: SignedPhotoTable
+      AttributeDefinitions:
+        - AttributeName: uid
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: uid
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      Tags:
+        - Key: AppType
+          Value: Serverless
+  VODTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: SignedVODTable
+      AttributeDefinitions:
+        - AttributeName: uid
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: uid
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      Tags:
+        - Key: AppType
+          Value: Serverless
+
+  #  PhtoCluster:
+  #    Type: AWS::DAX::Cluster
+  #    Properties:
+  #      ClusterName: PhtoCluster
+  #      Description: Cluster for Photo Table
+  #      IAMRoleARN: !GetAtt DynamoAccessRole.Arn
+  #      NodeType: dax.t2.small
+  #      ReplicationFactor: 3
+  #      SecurityGroupIds:
+  #        – !GetAtt getUrlSecurityGroup.GroupId
+  #      SubnetGroupName: !Ref getUrlSubnetGroup
+
+  #  DynamoAccessRole:
+  #    Type: AWS::IAM::Role
+  #    Properties:
+  #      AssumeRolePolicyDocument:
+  #        Statement:
+  #          – Action:
+  #            – sts:AssumeRole
+  #            Effect: Allow
+  #            Principal:
+  #              Service:
+  #              – dax.amazonaws.com
+  #        Version: ‘2012-10-17’
+  #      ManagedPolicyArns:
+  #        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonDynamoDBFullAccess'
+  #      RoleName: !Sub 'CodeStar-${ProjectId}-Dynamo'
+
+
+  LambdaExecutionRole:
+    Description: Creating service role in IAM for AWS Lambda
+    Type: AWS::IAM::Role
+    Properties:
+      #      RoleName: !Sub 'CodeStar-${ProjectId}-Execution${Stage}'
+      RoleName: !Sub 'Lamda-Signed-Execution-Role'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonS3FullAccess'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonDynamoDBFullAccess'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AWSXrayWriteOnlyAccess'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+#      PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/CodeStar_${ProjectId}_PermissionsBoundary'
+
+#  PhotoTable:
+#    Type: AWS::Serverless::SimpleTable
+#    Properties:
+#      TableName: PhotoTable2
+#      PrimaryKey:
+#        Name: uid
+#        Type: String
+#      ProvisionedThroughput:
+#        ReadCapacityUnits: 5
+#        WriteCapacityUnits: 5
+#      Tags:
+#        AppType: Serverless
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  UploadApi:
+    Description: "API Gateway endpoint URL for Prod stage for Upload function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/nfile/object"
+  UploadFunction:
+    Description: "Upload Lambda Function ARN"
+    Value: !GetAtt UploadFunction.Arn
+  #  UploadFunctionIamRole:
+  #    Description: "Implicit IAM Role created for Upload function"
+  #    Value: !GetAtt UploadFunctionRole.Arn
+  DownloadApi:
+    Description: "API Gateway endpoint URL for Prod stage for Download function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/nfile/object/{oid}"
+  DownloadFunction:
+    Description: "Download Lambda Function ARN"
+    Value: !GetAtt UploadFunction.Arn
+#  DownloadFunctionIamRole:
+#    Description: "Implicit IAM Role created for Download function"
+#    Value: !GetAtt UploadFunctionRole.Arn
