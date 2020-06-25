@@ -27,8 +27,8 @@ public class S3Manager {
     public final static String COOKIE_DOMAIN = ".cloudfront.net";
     public final static String CF_DIST_DOMAIN = "[File Download CF Domain].cloudfront.net";
     public final static String CF_THUMB_DIST_DOMAIN = "[Thumbnail CF Domain]].cloudfront.net";
-    public final static String PHOTO_BUCKET = "signed-img-myid";
-    public final static String VOD_BUCKET = "signed-video-myid";
+    public final static String PHOTO_BUCKET = "signed-img-[my_id]";
+    public final static String VOD_BUCKET = "signed-video-[my_id]";
     public final static String KEY_PAIR_ID = "[CloudFront key pair id]";
 
     private final static String PRIVATE_KEY = "[CloudFront Private Key]";
