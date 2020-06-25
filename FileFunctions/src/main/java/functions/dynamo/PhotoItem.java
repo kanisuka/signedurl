@@ -8,7 +8,7 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-@DynamoDBTable(tableName="PhotoTable")
+@DynamoDBTable(tableName="SignedPhotoTable")
 public class PhotoItem {
 
     private String uid;
